@@ -11,7 +11,9 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Car Rental System'),
+        title: const Text(
+          'Car Rental System',
+        ),
         centerTitle: true,
       ),
       body: Center(

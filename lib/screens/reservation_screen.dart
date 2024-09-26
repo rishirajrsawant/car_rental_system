@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/car_type.dart';
 import '../services/car_rental_system.dart';
-import '../screens/available_cars_screen.dart';
+import 'available_cars_screen.dart';
+import '../widgets/date_picker_field.dart';
 
 class ReservationScreen extends StatefulWidget {
   final CarRentalSystem carRentalSystem;
@@ -15,59 +16,9 @@ class ReservationScreen extends StatefulWidget {
 class _ReservationScreenState extends State<ReservationScreen> {
   CarType? selectedCarType;
   DateTime? startDate;
-  DateTime? endDate;
   TimeOfDay? startTime;
-  TimeOfDay? endTime;
-  int numberOfDays = 1;
+  int? numberOfDays;
   final _formKey = GlobalKey<FormState>();
-
-  void _reserveCar() {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-
-      DateTime startDateTime = DateTime(
-        startDate!.year,
-        startDate!.month,
-        startDate!.day,
-        startTime!.hour,
-        startTime!.minute,
-      );
-
-      DateTime endDateTime = DateTime(
-        endDate!.year,
-        endDate!.month,
-        endDate!.day,
-        endTime!.hour,
-        endTime!.minute,
-      );
-
-      var reservation = widget.carRentalSystem.reserveCar(
-        selectedCarType!,
-        startDateTime,
-        endDateTime,
-      );
-
-      if (endDateTime.isBefore(startDateTime)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content:
-                  Text('End date and time must be after start date and time.')),
-        );
-        return;
-      }
-
-      if (reservation != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Reservation successful!')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('No cars available for the selected dates.')),
-        );
-      }
-    }
-  }
 
   void _showAvailableCars() {
     if (_formKey.currentState!.validate()) {
@@ -81,13 +32,16 @@ class _ReservationScreenState extends State<ReservationScreen> {
         startTime!.minute,
       );
 
-      DateTime endDateTime = DateTime(
-        endDate!.year,
-        endDate!.month,
-        endDate!.day,
-        endTime!.hour,
-        endTime!.minute,
-      );
+      // Validate that the startDateTime is in the future
+      if (!startDateTime.isAfter(DateTime.now())) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Start date and time must be in the future.')),
+        );
+        return;
+      }
+
+      DateTime endDateTime = startDateTime.add(Duration(days: numberOfDays!));
 
       Navigator.push(
         context,
@@ -97,13 +51,12 @@ class _ReservationScreenState extends State<ReservationScreen> {
             startDateTime: startDateTime,
             endDateTime: endDateTime,
             carRentalSystem: widget.carRentalSystem,
+            numberOfDays: numberOfDays!,
           ),
         ),
       );
     }
   }
-
-  // Implement UI elements for selecting car type, start date, and number of days.
 
   @override
   Widget build(BuildContext context) {
@@ -112,139 +65,143 @@ class _ReservationScreenState extends State<ReservationScreen> {
         title: const Text('Make a Reservation'),
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                // Dropdown for Car Type
-                DropdownButtonFormField<CarType>(
-                  decoration: const InputDecoration(labelText: 'Car Type'),
-                  items: CarType.values.map((CarType type) {
-                    return DropdownMenuItem<CarType>(
-                      value: type,
-                      child:
-                          Text(type.toString().split('.').last.toUpperCase()),
-                    );
-                  }).toList(),
-                  onChanged: (CarType? newValue) {
-                    setState(() {
-                      selectedCarType = newValue;
-                    });
-                  },
-                  validator: (value) =>
-                      value == null ? 'Select a car type' : null,
+        padding: const EdgeInsets.all(10.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('Select Car Type', style: TextStyle(fontSize: 16)),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<CarType>(
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
                 ),
-                // Date picker for Start Date
-                TextFormField(
-                  decoration: const InputDecoration(
-                      labelText: 'Start Date',
-                      border: OutlineInputBorder(),
-                      suffixIcon: Icon(Icons.calendar_today)),
-                  readOnly: true,
-                  onTap: () async {
-                    DateTime? date = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime(2100),
-                    );
-                    if (date != null) {
-                      setState(() {
-                        startDate = date;
-                      });
-                    }
-                  },
-                  validator: (value) =>
-                      startDate == null ? 'Select a start date' : null,
-                  controller: TextEditingController(
-                    text: startDate != null
-                        ? startDate!.toLocal().toString().split(' ')[0]
-                        : '',
-                  ),
+                items: CarType.values.map((CarType type) {
+                  return DropdownMenuItem<CarType>(
+                    value: type,
+                    child: Text(type.toString().split('.').last.toUpperCase()),
+                  );
+                }).toList(),
+                onChanged: (CarType? newValue) {
+                  setState(() {
+                    selectedCarType = newValue;
+                  });
+                },
+                validator: (value) =>
+                    value == null ? 'Select a car type' : null,
+              ),
+              const SizedBox(height: 16),
+              // Start Date
+              const Text('Start Date', style: TextStyle(fontSize: 16)),
+              const SizedBox(height: 8),
+              DatePickerField(
+                labelText: 'Start Date',
+                selectedDate: startDate,
+                onDateSelected: (date) {
+                  setState(() {
+                    startDate = date;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              // Start Time
+              const Text('Start Time', style: TextStyle(fontSize: 16)),
+              const SizedBox(height: 8),
+              _buildTimePickerField(
+                labelText: 'Start Time',
+                selectedTime: startTime,
+                onTimeSelected: (time) {
+                  setState(() {
+                    startTime = time;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              // Number of Days
+              const Text('Number of Days', style: TextStyle(fontSize: 16)),
+              const SizedBox(height: 8),
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Number of Days',
+                  border: OutlineInputBorder(),
                 ),
-                // End Date
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'End Date',
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.calendar_today),
-                  ),
-                  readOnly: true,
-                  onTap: () async {
-                    DateTime? date = await showDatePicker(
-                      context: context,
-                      initialDate: startDate ?? DateTime.now(),
-                      firstDate: startDate ?? DateTime.now(),
-                      lastDate: DateTime(2100),
-                    );
-                    if (date != null) {
-                      setState(() {
-                        endDate = date;
-                      });
-                    }
-                  },
-                  validator: (value) =>
-                      endDate == null ? 'Select an end date' : null,
-                  controller: TextEditingController(
-                    text: endDate != null
-                        ? endDate!.toLocal().toString().split(' ')[0]
-                        : '',
-                  ),
-                ),
-
-                // Start Time
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Start Time'),
-                  readOnly: true,
-                  onTap: () async {
-                    TimeOfDay? time = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.now(),
-                    );
-                    if (time != null) {
-                      setState(() {
-                        startTime = time;
-                      });
-                    }
-                  },
-                  validator: (value) =>
-                      startTime == null ? 'Select a start time' : null,
-                  controller: TextEditingController(
-                    text: startTime != null ? startTime!.format(context) : '',
-                  ),
-                ),
-                // End Time
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'End Time'),
-                  readOnly: true,
-                  onTap: () async {
-                    TimeOfDay? time = await showTimePicker(
-                      context: context,
-                      initialTime: startTime ?? TimeOfDay.now(),
-                    );
-                    if (time != null) {
-                      setState(() {
-                        endTime = time;
-                      });
-                    }
-                  },
-                  validator: (value) =>
-                      endTime == null ? 'Select an end time' : null,
-                  controller: TextEditingController(
-                    text: endTime != null ? endTime!.format(context) : '',
-                  ),
-                ),
-                ElevatedButton(
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  int? days = int.tryParse(value!);
+                  if (days == null || days <= 0) {
+                    return 'Enter a valid number of days';
+                  }
+                  return null;
+                },
+                onSaved: (value) {
+                  numberOfDays = int.parse(value!);
+                },
+              ),
+              const SizedBox(height: 24),
+              Center(
+                child: ElevatedButton(
                   child: Text('Check Availability'),
                   onPressed: _showAvailableCars,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 40, vertical: 20),
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildTimePickerField({
+    required String labelText,
+    required TimeOfDay? selectedTime,
+    required ValueChanged<TimeOfDay?> onTimeSelected,
+  }) {
+    return TextFormField(
+      decoration: InputDecoration(
+        labelText: labelText,
+        border: const OutlineInputBorder(),
+        suffixIcon: const Icon(Icons.access_time),
+      ),
+      readOnly: true,
+      onTap: () async {
+        TimeOfDay initialTime = selectedTime ?? TimeOfDay.now();
+        TimeOfDay? time = await showTimePicker(
+          context: context,
+          initialTime: initialTime,
+        );
+        if (time != null) {
+          bool isValid = _validateSelectedTime(time);
+          if (isValid) {
+            onTimeSelected(time);
+          } else {
+            // Show error message
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Please select a future time.')),
+            );
+          }
+        }
+      },
+      validator: (value) => selectedTime == null ? 'Select a time' : null,
+      controller: TextEditingController(
+        text: selectedTime != null ? selectedTime.format(context) : '',
+      ),
+    );
+  }
+
+  bool _validateSelectedTime(TimeOfDay selectedTime) {
+    DateTime now = DateTime.now();
+    DateTime selectedDateTime = DateTime(
+      startDate!.year,
+      startDate!.month,
+      startDate!.day,
+      selectedTime.hour,
+      selectedTime.minute,
+    );
+    return selectedDateTime.isAfter(now);
   }
 }

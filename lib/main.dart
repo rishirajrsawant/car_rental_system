@@ -4,7 +4,6 @@ import 'models/car_type.dart';
 import 'models/inventory.dart';
 import 'services/car_rental_system.dart';
 import 'screens/home_screen.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   // Initialize inventory with limited cars
@@ -29,6 +28,13 @@ void main() {
       model: 'Dodge Grand Caravan',
       color: 'White',
       pricePerDay: 90.0,
+    ),
+    Car(
+      id: '4',
+      type: CarType.sedan,
+      model: 'Honda City',
+      color: 'Grey',
+      pricePerDay: 60.0,
     ),
     // Add more cars as needed
   ];
@@ -57,7 +63,10 @@ class MyApp extends StatelessWidget {
           secondary: Colors.white,
         ),
         textTheme: const TextTheme(
-          bodyMedium: TextStyle(color: Colors.white),
+          bodyMedium: TextStyle(
+            color: Colors.white,
+            fontFamily: "Poppins",
+          ),
         ),
         appBarTheme: const AppBarTheme(
           color: Colors.black,
@@ -65,9 +74,9 @@ class MyApp extends StatelessWidget {
           iconTheme: IconThemeData(color: Colors.white),
           titleTextStyle: TextStyle(
             color: Colors.white,
-            fontSize: 20,
+            fontSize: 25,
             fontWeight: FontWeight.bold,
-            fontFamily: 'Poppins',
+            fontFamily: "Poppins",
           ),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
@@ -76,6 +85,7 @@ class MyApp extends StatelessWidget {
             foregroundColor: Colors.black, // Button text color
             textStyle: const TextStyle(
               fontSize: 16,
+              fontFamily: "Poppins",
             ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
@@ -85,6 +95,7 @@ class MyApp extends StatelessWidget {
             backgroundColor: Colors.black,
             textStyle: const TextStyle(
               fontSize: 16,
+              fontFamily: "Poppins",
             ),
           ),
         ),
