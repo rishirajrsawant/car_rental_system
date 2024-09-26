@@ -36,7 +36,27 @@ void main() {
       color: 'Grey',
       pricePerDay: 60.0,
     ),
-    // Add more cars as needed
+    Car(
+      id: '5',
+      type: CarType.suv,
+      model: 'Toyota Fortuner',
+      color: 'Black',
+      pricePerDay: 80.0,
+    ),
+    Car(
+      id: '6',
+      type: CarType.van,
+      model: 'Ford Transit',
+      color: 'Silver',
+      pricePerDay: 100.0,
+    ),
+    Car(
+      id: '7',
+      type: CarType.sedan,
+      model: 'Volkswagen Passat',
+      color: 'Gravity Black',
+      pricePerDay: 65.0,
+    ),
   ];
 
   Inventory inventory = Inventory(cars);

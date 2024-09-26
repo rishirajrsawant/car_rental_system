@@ -59,8 +59,8 @@ class CarRentalSystem {
   bool _isCarReserved(Car car, DateTime startDateTime, DateTime endDateTime) {
     return reservations.any((r) =>
         r.car.id == car.id &&
-        !(endDateTime.isBefore(r.startDateTime) ||
-            startDateTime.isAfter(r.endDateTime)));
+        startDateTime.isBefore(r.endDateTime) &&
+        endDateTime.isAfter(r.startDateTime));
   }
 
   List<Car> getAvailableCars(
@@ -84,7 +84,6 @@ class CarRentalSystem {
 
   bool editReservation(String reservationId, DateTime newStartDateTime,
       DateTime newEndDateTime) {
-    // Find the reservation
     int index = reservations.indexWhere((r) => r.id == reservationId);
     if (index == -1) {
       // Reservation not found
@@ -93,10 +92,6 @@ class CarRentalSystem {
 
     Reservation reservation = reservations[index];
 
-    if (reservation == null) {
-      return false;
-    }
-
     // Check for conflicts with other reservations
     bool hasConflict = reservations.any((r) {
       if (r.id == reservationId) {
@@ -104,8 +99,8 @@ class CarRentalSystem {
         return false;
       }
       return r.car.id == reservation.car.id &&
-          !(newEndDateTime.isBefore(r.startDateTime) ||
-              newStartDateTime.isAfter(r.endDateTime));
+          newStartDateTime.isBefore(r.endDateTime) &&
+          newEndDateTime.isAfter(r.startDateTime);
     });
 
     if (hasConflict) {
@@ -121,12 +116,8 @@ class CarRentalSystem {
   }
 
   bool cancelReservation(String reservationId) {
-    int index = reservations.indexWhere((r) => r.id == reservationId);
-    if (index != -1) {
-      reservations.removeAt(index);
-      return true;
-    } else {
-      return false;
-    }
+    int initialLength = reservations.length;
+    reservations.removeWhere((r) => r.id == reservationId);
+    return reservations.length < initialLength;
   }
 }
