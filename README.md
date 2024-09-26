@@ -1,3 +1,3 @@
 # car_rental_system
 
-A new Flutter project.
+Mobile Application to show basic functionalities of car rental system - Flutter Approach
