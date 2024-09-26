@@ -3,8 +3,8 @@ import 'car.dart';
 class Reservation {
   final String id;
   final Car car;
-  final DateTime startDateTime;
-  final DateTime endDateTime;
+  DateTime startDateTime;
+  DateTime endDateTime;
 
   Reservation({
     required this.id,

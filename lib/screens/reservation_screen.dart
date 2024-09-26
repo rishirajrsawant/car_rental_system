@@ -169,6 +169,12 @@ class _ReservationScreenState extends State<ReservationScreen> {
       ),
       readOnly: true,
       onTap: () async {
+        if (startDate == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please select a start date first.')),
+          );
+          return;
+        }
         TimeOfDay initialTime = selectedTime ?? TimeOfDay.now();
         TimeOfDay? time = await showTimePicker(
           context: context,

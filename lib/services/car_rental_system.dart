@@ -78,7 +78,55 @@ class CarRentalSystem {
     return carsByType.where((car) => !reservedCars.contains(car)).toList();
   }
 
-  void cancelReservation(String reservationId) {
-    reservations.removeWhere((r) => r.id == reservationId);
+  List<Reservation> getAllReservations() {
+    return reservations;
+  }
+
+  bool editReservation(String reservationId, DateTime newStartDateTime,
+      DateTime newEndDateTime) {
+    // Find the reservation
+    int index = reservations.indexWhere((r) => r.id == reservationId);
+    if (index == -1) {
+      // Reservation not found
+      return false;
+    }
+
+    Reservation reservation = reservations[index];
+
+    if (reservation == null) {
+      return false;
+    }
+
+    // Check for conflicts with other reservations
+    bool hasConflict = reservations.any((r) {
+      if (r.id == reservationId) {
+        // Skip the reservation being edited
+        return false;
+      }
+      return r.car.id == reservation.car.id &&
+          !(newEndDateTime.isBefore(r.startDateTime) ||
+              newStartDateTime.isAfter(r.endDateTime));
+    });
+
+    if (hasConflict) {
+      // Cannot edit due to conflict
+      return false;
+    }
+
+    // Update the reservation
+    reservation.startDateTime = newStartDateTime;
+    reservation.endDateTime = newEndDateTime;
+
+    return true;
+  }
+
+  bool cancelReservation(String reservationId) {
+    int index = reservations.indexWhere((r) => r.id == reservationId);
+    if (index != -1) {
+      reservations.removeAt(index);
+      return true;
+    } else {
+      return false;
+    }
   }
 }

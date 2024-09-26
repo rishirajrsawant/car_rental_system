@@ -53,6 +53,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Car Rental System',
       theme: ThemeData(
         primaryColor: Colors.black45,
